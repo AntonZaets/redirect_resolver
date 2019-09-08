@@ -1,2 +1,2 @@
 # redirect_resolver
-Application that resolving of HTTP redirects
+Application for resolving of HTTP redirects

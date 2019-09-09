@@ -20,6 +20,9 @@ class RedirectServer:
     def cyclic_redirect(self):
         pass
 
+    def no_redirects(self):
+        pass
+
 class RedirectRequestHandler:
     def __init__(self):
         pass

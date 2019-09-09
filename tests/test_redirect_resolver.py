@@ -10,6 +10,10 @@ def server():
     yield server
     server.stop()
 
+def test_no_redirects(server):
+    resolver = RedirectResolver()
+    assert resolver.resolve(server.no_redirects()) == None
+
 def test_many_redirects(server):
     redirects_num = 3
     resolver = RedirectResolver()

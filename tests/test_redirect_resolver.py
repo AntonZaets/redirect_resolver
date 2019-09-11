@@ -1,7 +1,7 @@
 import pytest
-
 import redirect_resolver
 import redirect_server
+
 
 @pytest.fixture(scope='module')
 def server():
@@ -10,10 +10,12 @@ def server():
     yield server
     server.stop()
 
+
 def test_no_redirects(server):
     resolver = redirect_resolver.RedirectResolver()
     url_without_redirects = server.no_redirects()
     assert resolver.resolve(url_without_redirects) == url_without_redirects
+
 
 @pytest.mark.parametrize(
     'code', redirect_server.RedirectServer.get_redirect_codes())
@@ -22,6 +24,7 @@ def test_many_redirects(server, code):
     resolver = redirect_resolver.RedirectResolver()
     url, target_url = server.many_redirects(code, redirects_num)
     assert resolver.resolve(url) == target_url
+
 
 @pytest.mark.parametrize(
     'code', redirect_server.RedirectServer.get_redirect_codes())
@@ -32,6 +35,7 @@ def test_too_many_redirects(server, code):
     with pytest.raises(redirect_resolver.TooManyRedirectsError):
         resolver.resolve(url)
 
+
 @pytest.mark.parametrize(
     'code', redirect_server.RedirectServer.get_redirect_codes())
 def test_cyclic_redirect(server, code):
@@ -40,10 +44,12 @@ def test_cyclic_redirect(server, code):
     with pytest.raises(redirect_resolver.CyclicRedirectError):
         resolver.resolve(server.cyclic_redirect(code, redirects_num))
 
+
 def test_unlimited_content(server):
     resolver = redirect_resolver.RedirectResolver()
     with pytest.raises(redirect_resolver.UnlimitedContentError):
         resolver.resolve(server.unlimited_content())
+
 
 def test_ignore_unlimited_content(server):
     resolver = redirect_resolver.RedirectResolver(ignore_unlimited=True)

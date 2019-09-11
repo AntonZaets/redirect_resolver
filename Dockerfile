@@ -1,5 +1,5 @@
 FROM python:3.6.9
 
-RUN pip install pytest
-
+ADD requirements-dev.txt app/
 WORKDIR app 
+RUN pip install -r requirements-dev.txt

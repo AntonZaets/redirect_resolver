@@ -1,13 +1,6 @@
 #!/bin/python3
-
-#TODO
-#   tests all codes
-#   check for pep8
-#   refactoring?
-#   application wrapper
-#   requirements.txt
-
 import urllib.request
+
 
 class RedirectResolver:
 
@@ -24,14 +17,18 @@ class RedirectResolver:
         with opener.open(request) as http_response:
             return http_response.geturl()
 
+
 class TooManyRedirectsError(Exception):
     pass
+
 
 class CyclicRedirectError(Exception):
     pass
 
+
 class UnlimitedContentError(Exception):
     pass
+
 
 class _RedirectHandler(urllib.request.HTTPRedirectHandler):
 
@@ -53,12 +50,14 @@ class _RedirectHandler(urllib.request.HTTPRedirectHandler):
         if newurl in self._visited:
             raise CyclicRedirectError()
         self._visited.add(newurl)
-        new_request = super().redirect_request(req, fp, code, msg, hdrs, newurl)
+        new_request = super().redirect_request(
+            req, fp, code, msg, hdrs, newurl)
         new_request.method = 'HEAD'
         return new_request
 
     def http_error_308(self, req, fp, code, msg, hdrs):
         return super().http_error_307(req, fp, 307, msg, hdrs)
+
 
 class _UnlimitedContentProcessor(urllib.request.HTTPErrorProcessor):
 
@@ -70,6 +69,7 @@ class _UnlimitedContentProcessor(urllib.request.HTTPErrorProcessor):
         if transfer_value and 'chunked' in transfer_value:
             raise UnlimitedContentError()
         return super().http_response(req, resp)
+
 
 if __name__ == '__main__':
     print('hello')

@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from threading import Thread
 
+
 class RedirectServer(HTTPServer):
 
     def __init__(self):
@@ -46,8 +47,8 @@ class RedirectServer(HTTPServer):
         return self._build_url(path)
 
     def get_redirect_info(self, path):
-        #it's better to explicitly crash for unexpected path,
-        #since RedirectServer is used for testing purpose
+        # it's better to explicitly crash for unexpected path,
+        # since RedirectServer is used for testing purpose
         assert path in self._redirects, \
                'path {} not in {}'.format(path, self._redirects.keys())
         try:
@@ -62,7 +63,7 @@ class RedirectServer(HTTPServer):
     def _gen_many_redirects(self, init_path, target_path, code, num):
         previous_path = init_path
         paths = [(code, self._random_path()) for i in range(0, num - 1)] \
-              + [(code, target_path)]
+            + [(code, target_path)]
         for new_code, new_path in paths:
             generator = self._redirects[previous_path]
             del self._redirects[previous_path]
@@ -87,6 +88,7 @@ class RedirectServer(HTTPServer):
     def _build_url(self, path):
         address, port = self.server_address
         return urljoin('http://{}:{}/'.format(address, port), path)
+
 
 class RedirectRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):

@@ -38,15 +38,21 @@ class RedirectServer(HTTPServer):
         self._redirects[path] = itertools.cycle([])
         return self._build_url(path)
 
-    def do_redirect(self, path):
+    def unlimited_content(self):
+        path = self._random_path()
+        chunked_headers = [('Transfer-Encoding', 'gzip, chunked')]
+        self._redirects[path] = itertools.cycle([chunked_headers])
+        return self._build_url(path)
+
+    def make_headers(self, path):
         #it's better to explicitly crash for unexpected path,
         #since RedirectServer is used for testing purpose
         assert path in self._redirects, \
                'path {} not in {}'.format(path, self._redirects.keys())
         try:
-            return self._build_url(next(self._redirects[path]))
+            return next(self._redirects[path])
         except StopIteration:
-            return None
+            return []
 
     def get_redirect_codes(self):
         return [301, 302, 303, 307, 308]
@@ -60,7 +66,7 @@ class RedirectServer(HTTPServer):
             del self._redirects[previous_path]
             self._redirects[new_path] = generator
             previous_path = new_path
-            yield new_path
+            yield [('Location', self._build_url(new_path))]
 
     def _gen_cycle_redirects(self, init_path, num):
         paths = [self._random_path() for i in range(0, num - 1)] \
@@ -71,7 +77,7 @@ class RedirectServer(HTTPServer):
             del self._redirects[previous_path]
             self._redirects[new_path] = generator
             previous_path = new_path
-            yield new_path
+            yield [('Location', self._build_url(new_path))]
 
     def _random_path(self):
         return '/{}'.format(uuid.uuid4().hex)
@@ -85,12 +91,12 @@ class RedirectRequestHandler(BaseHTTPRequestHandler):
         super().__init__(request, client_address, server)
 
     def do_HEAD(self):
-        location = self.server.do_redirect(self.path)
-        response_code = self.server.get_redirect_codes()[0] if location \
+        basic_headers = [('Content-Length', '0')]
+        path_specific_headers = self.server.make_headers(self.path)
+        headers_dict = dict(basic_headers + path_specific_headers)
+        response_code = self.server.get_redirect_codes()[0] if 'Location' in headers_dict \
                         else 200
         self.send_response(response_code, '')
-        self.send_header('Content-Length', '0')
-        if location:
-            self.send_header('Location', location)
+        for header_name, header_value in headers_dict.items():
+            self.send_header(header_name, header_value)
         self.end_headers()
-        self.log_message('Response: %d. Location: %s', response_code, location)

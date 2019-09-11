@@ -3,12 +3,15 @@ import urllib.request
 
 class RedirectResolver:
 
-    def __init__(self, max_redirects=3):
+    def __init__(self, max_redirects=3, ignore_unlimited=False):
         self._max_redirects = max_redirects
+        self._ignore_unlimited = ignore_unlimited
 
     def resolve(self, url):
-        opener = urllib.request.build_opener(
-            _RedirectHandler(url, self._max_redirects))
+        handlers = [_RedirectHandler(url, self._max_redirects)]
+        if not self._ignore_unlimited:
+            handlers = [_UnlimitedContentProcessor()] + handlers
+        opener = urllib.request.build_opener(*handlers)
         request = urllib.request.Request(url, method='HEAD')
         with opener.open(request) as http_response:
             return http_response.geturl()
@@ -17,6 +20,9 @@ class TooManyRedirectsError(Exception):
     pass
 
 class CyclicRedirectError(Exception):
+    pass
+
+class UnlimitedContentError(Exception):
     pass
 
 class _RedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -42,6 +48,17 @@ class _RedirectHandler(urllib.request.HTTPRedirectHandler):
         new_request = super().redirect_request(req, fp, code, msg, hdrs, newurl)
         new_request.method = 'HEAD'
         return new_request
+
+class _UnlimitedContentProcessor(urllib.request.HTTPErrorProcessor):
+
+    def __init__(self):
+        super().__init__()
+
+    def http_response(self, req, resp):
+        transfer_value = resp.getheader('transfer-encoding')
+        if transfer_value and 'chunked' in transfer_value:
+            raise UnlimitedContentError()
+        return super().http_response(req, resp)
 
 if __name__ == '__main__':
     print('hello')

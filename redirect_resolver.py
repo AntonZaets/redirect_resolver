@@ -1,4 +1,12 @@
 #!/bin/python3
+
+#TODO
+#   tests all codes
+#   check for pep8
+#   refactoring?
+#   application wrapper
+#   requirements.txt
+
 import urllib.request
 
 class RedirectResolver:
@@ -10,7 +18,7 @@ class RedirectResolver:
     def resolve(self, url):
         handlers = [_RedirectHandler(url, self._max_redirects)]
         if not self._ignore_unlimited:
-            handlers = [_UnlimitedContentProcessor()] + handlers
+            handlers.append(_UnlimitedContentProcessor())
         opener = urllib.request.build_opener(*handlers)
         request = urllib.request.Request(url, method='HEAD')
         with opener.open(request) as http_response:
@@ -48,6 +56,9 @@ class _RedirectHandler(urllib.request.HTTPRedirectHandler):
         new_request = super().redirect_request(req, fp, code, msg, hdrs, newurl)
         new_request.method = 'HEAD'
         return new_request
+
+    def http_error_308(self, req, fp, code, msg, hdrs):
+        return super().http_error_307(req, fp, 307, msg, hdrs)
 
 class _UnlimitedContentProcessor(urllib.request.HTTPErrorProcessor):
 

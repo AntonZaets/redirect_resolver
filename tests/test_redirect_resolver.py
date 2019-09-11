@@ -3,7 +3,7 @@ import pytest
 from redirect_resolver import RedirectResolver
 from redirect_server import RedirectServer
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def server():
     server = RedirectServer()
     server.start()
@@ -25,5 +25,6 @@ def test_too_many_redirects(server):
     assert resolver.resolve(server.many_redirects(max_redirects + 1)) == None
 
 def test_cyclic_redirect(server):
+    redirects_num = 3
     resolver = RedirectResolver()
-    assert resolver.resolve(server.cyclic_redirect()) == None
+    assert resolver.resolve(server.cyclic_redirect(redirects_num)) == None

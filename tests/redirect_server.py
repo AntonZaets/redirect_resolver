@@ -30,6 +30,7 @@ class RedirectServer(HTTPServer):
 
     def no_redirects(self):
         path = self._random_path()
+        self._redirects[path] = itertools.cycle([])
         return self._build_url(path)
 
     def do_redirect(self, path):

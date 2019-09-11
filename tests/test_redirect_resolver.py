@@ -12,7 +12,8 @@ def server():
 
 def test_no_redirects(server):
     resolver = RedirectResolver()
-    assert resolver.resolve(server.no_redirects()) == None
+    url_without_redirects = server.no_redirects()
+    assert resolver.resolve(url_without_redirects) == url_without_redirects
 
 def test_many_redirects(server):
     redirects_num = 3

@@ -15,5 +15,11 @@ class RedirectResolver:
                 http_response.getcode()))
             return http_response.geturl()
 
+class TooManyRedirectsError(Exception):
+    pass
+
+class CyclicRedirectError(Exception):
+    pass
+
 if __name__ == '__main__':
     print('hello')

@@ -19,12 +19,17 @@ class RedirectServer(HTTPServer):
         self._thread.join()
 
     def many_redirects(self, num):
+        assert num > 0, "number of redirects should be greater than 0"
         path = self._random_path()
-        self._redirects[path] = self._gen_many_redirects(path, num)
-        return self._build_url(path)
+        target_path = self._random_path()
+        print('generator of many redirects for path {}'.format(path))
+        self._redirects[path] = self._gen_many_redirects(path, target_path, num)
+        return (self._build_url(path), self._build_url(target_path))
 
     def cyclic_redirect(self, num):
+        assert num > 0, "number of redirects should be greater than 0"
         path = self._random_path()
+        print('generator of cyclic redirects for path {}'.format(path))
         self._redirects[path] = self._gen_cycle_redirects(path, num)
         return self._build_url(path)
 
@@ -46,10 +51,11 @@ class RedirectServer(HTTPServer):
     def get_redirect_codes(self):
         return [301, 302, 303, 307, 308]
 
-    def _gen_many_redirects(self, init_path, num):
+    def _gen_many_redirects(self, init_path, target_path, num):
         previous_path = init_path
-        for i in range(0, num):
-            new_path = self._random_path()
+        paths = [self._random_path() for i in range(0, num - 1)] \
+              + [target_path]
+        for new_path in paths:
             generator = self._redirects[previous_path]
             del self._redirects[previous_path]
             self._redirects[new_path] = generator
@@ -85,6 +91,6 @@ class RedirectRequestHandler(BaseHTTPRequestHandler):
         self.send_response(response_code, '')
         self.send_header('Content-Length', '0')
         if location:
-            self.send_header('Location', self.server.do_redirect(self.path))
+            self.send_header('Location', location)
         self.end_headers()
         self.log_message('Response: %d. Location: %s', response_code, location)

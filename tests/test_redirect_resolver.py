@@ -1,6 +1,7 @@
 import pytest
 
-from redirect_resolver import RedirectResolver
+from redirect_resolver import RedirectResolver, TooManyRedirectsError, \
+                              CyclicRedirectError
 from redirect_server import RedirectServer
 
 @pytest.fixture(scope='module')
@@ -18,14 +19,18 @@ def test_no_redirects(server):
 def test_many_redirects(server):
     redirects_num = 3
     resolver = RedirectResolver()
-    assert resolver.resolve(server.many_redirects(redirects_num)) == None
+    url, target_url = server.many_redirects(redirects_num)
+    assert resolver.resolve(url) == target_url
 
 def test_too_many_redirects(server):
     max_redirects = 1
     resolver = RedirectResolver(max_redirects=max_redirects)
-    assert resolver.resolve(server.many_redirects(max_redirects + 1)) == None
+    url, _ = server.many_redirects(max_redirects + 1)
+    with pytest.raises(TooManyRedirectsError):
+        resolver.resolve(url)
 
 def test_cyclic_redirect(server):
     redirects_num = 3
     resolver = RedirectResolver()
-    assert resolver.resolve(server.cyclic_redirect(redirects_num)) == None
+    with pytest.raises(CyclicRedirectError):
+        resolver.resolve(server.cyclic_redirect(redirects_num))

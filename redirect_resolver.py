@@ -9,7 +9,8 @@ class RedirectResolver:
     def resolve(self, url):
         opener = urllib.request.build_opener(
             _RedirectHandler(url, self._max_redirects))
-        with opener.open(url) as http_response:
+        request = urllib.request.Request(url, method='HEAD')
+        with opener.open(request) as http_response:
             return http_response.geturl()
 
 class TooManyRedirectsError(Exception):
@@ -38,7 +39,9 @@ class _RedirectHandler(urllib.request.HTTPRedirectHandler):
         if newurl in self._visited:
             raise CyclicRedirectError()
         self._visited.add(newurl)
-        return super().redirect_request(req, fp, code, msg, hdrs, newurl)
+        new_request = super().redirect_request(req, fp, code, msg, hdrs, newurl)
+        new_request.method = 'HEAD'
+        return new_request
 
 if __name__ == '__main__':
     print('hello')

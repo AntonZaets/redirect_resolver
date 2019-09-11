@@ -84,7 +84,7 @@ class RedirectRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, request, client_address, server):
         super().__init__(request, client_address, server)
 
-    def do_GET(self):
+    def do_HEAD(self):
         location = self.server.do_redirect(self.path)
         response_code = self.server.get_redirect_codes()[0] if location \
                         else 200

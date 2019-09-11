@@ -32,7 +32,7 @@ class RedirectServer(HTTPServer):
         assert num > 0, "number of redirects should be greater than 0"
         path = self._random_path()
         target_path = self._random_path()
-        self._redirects[path] = self._gen_many_redirects(
+        self._redirects[path] = self._make_many_redirects_gen(
             path, target_path, code, num)
         return (self._build_url(path), self._build_url(target_path))
 
@@ -45,7 +45,7 @@ class RedirectServer(HTTPServer):
         assert code in self.get_redirect_codes()
         assert num > 0, "number of redirects should be greater than 0"
         path = self._random_path()
-        self._redirects[path] = self._gen_cycle_redirects(path, code, num)
+        self._redirects[path] = self._make_cycle_redirects_gen(path, code, num)
         return self._build_url(path)
 
     def no_redirects(self):
@@ -78,7 +78,7 @@ class RedirectServer(HTTPServer):
         """HTTP codes that should be trated as redirection"""
         return [301, 302, 303, 307, 308]
 
-    def _gen_many_redirects(self, init_path, target_path, code, num):
+    def _make_many_redirects_gen(self, init_path, target_path, code, num):
         previous_path = init_path
         paths = [(code, self._random_path()) for i in range(0, num - 1)] \
             + [(code, target_path)]
@@ -91,7 +91,7 @@ class RedirectServer(HTTPServer):
 
             yield (new_code, [('Location', self._build_url(new_path))])
 
-    def _gen_cycle_redirects(self, init_path, code, num):
+    def _make_cycle_redirects_gen(self, init_path, code, num):
         paths = [self._random_path() for i in range(0, num - 1)] \
               + [init_path]
         previous_path = init_path

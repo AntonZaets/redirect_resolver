@@ -1,4 +1,5 @@
 #!/bin/python3
+import argparse
 import urllib.request
 
 
@@ -72,4 +73,15 @@ class _UnlimitedContentProcessor(urllib.request.HTTPErrorProcessor):
 
 
 if __name__ == '__main__':
-    print('hello')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--max-redirects', type=int, default=5,
+        help='Maximum number of redirects')
+    parser.add_argument('--ignore-unlimited-content',
+        action='store_true', default=False,
+        help='Don\'t rise an exception if content may have unlimited size')
+    parser.add_argument('url', type=str, help='URL for resolving')
+    args = parser.parse_args()
+    resolver = RedirectResolver(
+        max_redirects=args.max_redirects,
+        ignore_unlimited=args.ignore_unlimited_content)
+    print(resolver.resolve(args.url))

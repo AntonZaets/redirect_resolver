@@ -31,6 +31,6 @@ def test_too_many_redirects(server):
 
 def test_cyclic_redirect(server):
     redirects_num = 3
-    resolver = RedirectResolver()
+    resolver = RedirectResolver(max_redirects=1000)
     with pytest.raises(CyclicRedirectError):
         resolver.resolve(server.cyclic_redirect(redirects_num))

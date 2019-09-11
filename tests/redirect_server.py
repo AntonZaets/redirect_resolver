@@ -33,13 +33,14 @@ class RedirectServer(HTTPServer):
         return self._build_url(path)
 
     def do_redirect(self, path):
-        redirect_target = None
-        if path in self._redirects:
-            try:
-                redirect_target = next(self._redirects[path])
-            except StopIteration:
-                pass
-        return self._build_url(redirect_target) if redirect_target else None
+        #it's better to explicitly crash for unexpected path,
+        #since RedirectServer is used for testing purpose
+        assert path in self._redirects, \
+               'path {} not in {}'.format(path, self._redirects.keys())
+        try:
+            return self._build_url(next(self._redirects[path]))
+        except StopIteration:
+            return None
 
     def get_redirect_codes(self):
         return [301, 302, 303, 307, 308]

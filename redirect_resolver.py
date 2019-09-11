@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 """Module and application for finding the target url in chain of redirects"""
 
 import argparse
